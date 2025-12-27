@@ -1,0 +1,20 @@
+{
+  "name": "ddos-scanner-backend",
+  "version": "1.0.0",
+  "description": "Backend server for DDoS Attack Tracker",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": ["ddos", "cybersecurity", "tracking"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  }
+}
