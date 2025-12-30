@@ -1,31 +1,44 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// Use environment variable or fallback to Render URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ddos-scanner-api.onrender.com/api';
 
-/**
- * Fetch attack data from backend
- * @returns {Promise<Array>} Array of attack objects
- */
-export async function fetchAttacks() {
+console.log('API URL:', API_BASE_URL); // Debug log
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000, // 30 seconds (Render free tier can be slow to wake up)
+});
+
+export const fetchAttacks = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/attacks`);
+    console.log('Fetching attacks.. .');
+    const response = await api.get('/attacks');
+    console.log('Attacks received:', response.data. length);
     return response.data;
   } catch (error) {
-    console.error('Error fetching attacks:', error);
-    throw error;
+    console.error('Error fetching attacks:', error. message);
+    // Return empty array instead of crashing
+    return [];
   }
-}
+};
 
-/**
- * Fetch statistics from backend
- * @returns {Promise<Object>} Statistics object
- */
-export async function fetchStats() {
+export const fetchStats = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/stats`);
+    console.log('Fetching stats...');
+    const response = await api.get('/stats');
+    console.log('Stats received:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    throw error;
+    console.error('Error fetching stats:', error.message);
+    // Return default stats instead of crashing
+    return {
+      totalAttacks: 0,
+      attacksByProtocol: {},
+      topSourceCountries: [],
+      topTargetCountries: []
+    };
   }
-}
+};
+
+export default api;
