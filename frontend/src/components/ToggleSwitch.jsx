@@ -10,9 +10,12 @@ export default function ToggleSwitch({ onChange }) {
   useEffect(() => {
     // Persist to localStorage whenever it changes
     localStorage.setItem('timePeriod', selected);
-    // Notify parent component
+  }, [selected]);
+
+  useEffect(() => {
+    // Notify parent component only when selected changes
     onChange(selected);
-  }, [selected, onChange]);
+  }, [selected]); // Removed onChange from dependencies to avoid infinite loops
 
   return (
     <div className="toggle-switch-container">

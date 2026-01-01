@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Globe from './components/Globe';
 import Dashboard from './components/Dashboard';
 import AttackList from './components/AttackList';
@@ -17,7 +17,7 @@ function App() {
   const [allStats, setAllStats] = useState(null);
 
   // Filter attacks based on time period
-  const filterAttacksByTimePeriod = (attacksData, period) => {
+  const filterAttacksByTimePeriod = useCallback((attacksData, period) => {
     const now = new Date();
     const cutoffTime = period === '1hour' 
       ? new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
@@ -27,10 +27,10 @@ function App() {
       const attackTime = new Date(attack.lastReportedAt || attack.timestamp || now);
       return attackTime >= cutoffTime;
     });
-  };
+  }, []);
 
   // Calculate filtered stats
-  const calculateStats = (attacksData) => {
+  const calculateStats = useCallback((attacksData) => {
     const attacksByProtocol = {};
     const countryCounts = {};
     
@@ -55,7 +55,14 @@ function App() {
       attacksByProtocol,
       topSourceCountries,
     };
-  };
+  }, []);
+
+  // Apply filters and update state
+  const applyFilters = useCallback((attacksData, period) => {
+    const filteredAttacks = filterAttacksByTimePeriod(attacksData, period);
+    setAttacks(filteredAttacks);
+    setStats(calculateStats(filteredAttacks));
+  }, [filterAttacksByTimePeriod, calculateStats]);
 
   // Fetch data from backend
   const loadData = async () => {
@@ -69,9 +76,7 @@ function App() {
       setAllStats(statsData);
       
       // Apply time filter
-      const filteredAttacks = filterAttacksByTimePeriod(attacksData, timePeriod);
-      setAttacks(filteredAttacks);
-      setStats(calculateStats(filteredAttacks));
+      applyFilters(attacksData, timePeriod);
       setLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -95,15 +100,13 @@ function App() {
   // Re-filter when time period changes
   useEffect(() => {
     if (allAttacks.length > 0) {
-      const filteredAttacks = filterAttacksByTimePeriod(allAttacks, timePeriod);
-      setAttacks(filteredAttacks);
-      setStats(calculateStats(filteredAttacks));
+      applyFilters(allAttacks, timePeriod);
     }
-  }, [timePeriod, allAttacks]);
+  }, [timePeriod, allAttacks, applyFilters]);
 
-  const handleTimePeriodChange = (newPeriod) => {
+  const handleTimePeriodChange = useCallback((newPeriod) => {
     setTimePeriod(newPeriod);
-  };
+  }, []);
 
   if (loading) {
     return (
