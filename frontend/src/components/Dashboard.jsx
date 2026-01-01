@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
@@ -64,7 +63,6 @@ export default function Dashboard({ stats, timePeriod }) {
 
   // Calculate additional stats
   const uniqueCountries = (stats.topSourceCountries || []).length;
-  const avgConfidence = stats.averageConfidence || 0;
 
   return (
     <div className="dashboard">
