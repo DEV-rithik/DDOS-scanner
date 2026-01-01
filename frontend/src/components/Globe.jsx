@@ -141,7 +141,7 @@ export default function GlobeComponent({ attacks, onSelectAttack, selectedAttack
             </div>
             <div className="info-row">
               <span className="info-label">Type:</span>
-              <span className={`info-badge badge-${(selectedAttack.attackType || 'suspicious').toLowerCase().replace(' ', '')}`}>
+              <span className={`info-badge badge-${(selectedAttack.attackType || 'suspicious').toLowerCase().replace(/\s+/g, '')}`}>
                 {selectedAttack.attackType || 'Unknown'}
               </span>
             </div>

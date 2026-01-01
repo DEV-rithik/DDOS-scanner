@@ -1,10 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Globe from './components/Globe';
 import Dashboard from './components/Dashboard';
 import AttackList from './components/AttackList';
 import ToggleSwitch from './components/ToggleSwitch';
 import { fetchAttacks, fetchStats } from './services/api';
 import './App.css';
+
+// Time period constants in milliseconds
+const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function App() {
   const [attacks, setAttacks] = useState([]);
@@ -40,8 +44,8 @@ function App() {
     
     const now = new Date();
     const cutoffTime = timePeriod === '1hour' 
-      ? new Date(now.getTime() - 60 * 60 * 1000)
-      : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      ? new Date(now.getTime() - MILLISECONDS_PER_HOUR)
+      : new Date(now.getTime() - 7 * MILLISECONDS_PER_DAY);
 
     return attacks.filter(attack => {
       // If attack has timestamp, use it; otherwise include all attacks
@@ -97,6 +101,11 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Memoize the time period change handler
+  const handleTimePeriodChange = useCallback((newPeriod) => {
+    setTimePeriod(newPeriod);
+  }, []);
+
   if (loading) {
     return (
       <div className="app">
@@ -134,7 +143,7 @@ function App() {
             🔄 Refresh
           </button>
         </div>
-        <ToggleSwitch value={timePeriod} onChange={setTimePeriod} />
+        <ToggleSwitch value={timePeriod} onChange={handleTimePeriodChange} />
       </header>
 
       <main className="app-main">

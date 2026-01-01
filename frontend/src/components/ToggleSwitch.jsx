@@ -13,7 +13,7 @@ export default function ToggleSwitch({ value, onChange }) {
         onChange(savedPeriod);
       }
     }
-  }, [value, onChange]);
+  }, [value, onChange]); // onChange is now memoized in parent
 
   const handleToggle = (newValue) => {
     onChange(newValue);
