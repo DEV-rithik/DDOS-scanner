@@ -28,8 +28,11 @@ function App() {
         fetchAttacks(),
         fetchStats()
       ]);
-      setAttacks(attacksData);
-      setStats(statsData);
+      setAllAttacks(attacksData);
+      setAllStats(statsData);
+      
+      // Apply time filter
+      applyFilters(attacksData, timePeriod);
       setLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -166,7 +169,11 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Data sources: AbuseIPDB & Cloudflare Radar | Last updated: {new Date().toLocaleTimeString()}</p>
+        <p>
+          📊 Data sources: AbuseIPDB & Cloudflare Radar | 
+          🕒 Last updated: {new Date().toLocaleTimeString()} | 
+          ⏱️ Showing: {timePeriod === '1hour' ? 'Last 1 Hour' : 'Last 7 Days'}
+        </p>
       </footer>
     </div>
   );
