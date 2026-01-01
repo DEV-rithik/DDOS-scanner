@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Globe from 'globe.gl';
+import './Globe.css';
 
 const ATTACK_COLORS = {
   'DDoS': '#ff4444',
@@ -119,6 +120,42 @@ export default function GlobeComponent({ attacks, onSelectAttack, selectedAttack
   }, [selectedAttack, globeReady]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+    <>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      {selectedAttack && (
+        <div className="globe-info-panel">
+          <div className="info-header">
+            <span className="info-icon">🎯</span>
+            <span className="info-title">Selected Attack</span>
+            <button 
+              className="info-close"
+              onClick={() => onSelectAttack(null)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="info-content">
+            <div className="info-row">
+              <span className="info-label">IP Address:</span>
+              <span className="info-value">{selectedAttack.ip}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Type:</span>
+              <span className={`info-badge badge-${selectedAttack.attackType.toLowerCase().replace(' ', '')}`}>
+                {selectedAttack.attackType}
+              </span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Location:</span>
+              <span className="info-value">{selectedAttack.city}, {selectedAttack.country}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Confidence:</span>
+              <span className="info-value confidence-value">{selectedAttack.confidence}%</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
