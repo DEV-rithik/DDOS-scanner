@@ -1,3 +1,5 @@
+import './AttackList.css';
+
 export default function AttackList({ attacks, onSelectAttack, selectedAttack }) {
   if (!attacks || attacks.length === 0) {
     return (

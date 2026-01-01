@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Globe from './components/Globe';
 import Dashboard from './components/Dashboard';
 import AttackList from './components/AttackList';
+import ToggleSwitch from './components/ToggleSwitch';
 import { fetchAttacks, fetchStats } from './services/api';
 import './App.css';
 
@@ -11,6 +12,50 @@ function App() {
   const [selectedAttack, setSelectedAttack] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [timePeriod, setTimePeriod] = useState('7days');
+  const [allAttacks, setAllAttacks] = useState([]);
+  const [allStats, setAllStats] = useState(null);
+
+  // Filter attacks based on time period
+  const filterAttacksByTimePeriod = (attacksData, period) => {
+    const now = new Date();
+    const cutoffTime = period === '1hour' 
+      ? new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
+      : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    
+    return attacksData.filter(attack => {
+      const attackTime = new Date(attack.lastReportedAt || attack.timestamp || now);
+      return attackTime >= cutoffTime;
+    });
+  };
+
+  // Calculate filtered stats
+  const calculateStats = (attacksData) => {
+    const attacksByProtocol = {};
+    const countryCounts = {};
+    
+    attacksData.forEach(attack => {
+      // Count by attack type
+      const type = attack.attackType || 'Unknown';
+      attacksByProtocol[type] = (attacksByProtocol[type] || 0) + 1;
+      
+      // Count by country
+      const country = attack.country || 'Unknown';
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    });
+    
+    // Get top source countries
+    const topSourceCountries = Object.entries(countryCounts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    
+    return {
+      totalAttacks: attacksData.length,
+      attacksByProtocol,
+      topSourceCountries,
+    };
+  };
 
   // Fetch data from backend
   const loadData = async () => {
@@ -20,8 +65,13 @@ function App() {
         fetchAttacks(),
         fetchStats()
       ]);
-      setAttacks(attacksData);
-      setStats(statsData);
+      setAllAttacks(attacksData);
+      setAllStats(statsData);
+      
+      // Apply time filter
+      const filteredAttacks = filterAttacksByTimePeriod(attacksData, timePeriod);
+      setAttacks(filteredAttacks);
+      setStats(calculateStats(filteredAttacks));
       setLoading(false);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -41,6 +91,19 @@ function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Re-filter when time period changes
+  useEffect(() => {
+    if (allAttacks.length > 0) {
+      const filteredAttacks = filterAttacksByTimePeriod(allAttacks, timePeriod);
+      setAttacks(filteredAttacks);
+      setStats(calculateStats(filteredAttacks));
+    }
+  }, [timePeriod, allAttacks]);
+
+  const handleTimePeriodChange = (newPeriod) => {
+    setTimePeriod(newPeriod);
+  };
 
   if (loading) {
     return (
@@ -70,8 +133,17 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🌐 DDoS Attack Tracker</h1>
-        <p>Real-time cyber threat visualization</p>
+        <div className="header-content">
+          <div className="header-left">
+            <h1>🌐 DDoS Attack Tracker</h1>
+            <p>Real-time cyber threat visualization</p>
+          </div>
+          <div className="header-right">
+            <button onClick={loadData} className="refresh-button" title="Refresh Data">
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
       </header>
 
       <main className="app-main">
@@ -84,7 +156,8 @@ function App() {
         </div>
 
         <div className="sidebar">
-          <Dashboard stats={stats} />
+          <ToggleSwitch onChange={handleTimePeriodChange} />
+          <Dashboard stats={stats} timePeriod={timePeriod} />
           <AttackList
             attacks={attacks}
             onSelectAttack={setSelectedAttack}
@@ -94,7 +167,11 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Data sources: AbuseIPDB & Cloudflare Radar | Last updated: {new Date().toLocaleTimeString()}</p>
+        <p>
+          📊 Data sources: AbuseIPDB & Cloudflare Radar | 
+          🕒 Last updated: {new Date().toLocaleTimeString()} | 
+          ⏱️ Showing: {timePeriod === '1hour' ? 'Last 1 Hour' : 'Last 7 Days'}
+        </p>
       </footer>
     </div>
   );

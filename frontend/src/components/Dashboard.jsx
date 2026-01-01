@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
+import './Dashboard.css';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-export default function Dashboard({ stats }) {
+export default function Dashboard({ stats, timePeriod }) {
   if (!stats) {
     return (
       <div className="dashboard">
@@ -13,6 +14,8 @@ export default function Dashboard({ stats }) {
       </div>
     );
   }
+
+  const timePeriodLabel = timePeriod === '1hour' ? '1 Hour' : '7 Days';
 
   // Prepare data for protocol chart (Doughnut)
   const protocolData = {
@@ -110,19 +113,19 @@ export default function Dashboard({ stats }) {
       <h2>📊 Dashboard</h2>
       
       <div className="stat-card">
-        <h3>Total Attacks (7 days)</h3>
+        <h3>🎯 Total Attacks ({timePeriodLabel})</h3>
         <div className="stat-number">{(stats.totalAttacks || 0).toLocaleString()}</div>
       </div>
 
       <div className="chart-container">
-        <h3>Attacks by Protocol</h3>
+        <h3>🔧 Attacks by Protocol</h3>
         <div style={{ height: '200px' }}>
           <Doughnut data={protocolData} options={protocolOptions} />
         </div>
       </div>
 
       <div className="chart-container">
-        <h3>Top Attack Sources</h3>
+        <h3>🌍 Top Attack Sources</h3>
         <div style={{ height: '250px' }}>
           <Bar data={sourceCountriesData} options={barOptions} />
         </div>

@@ -1,0 +1,195 @@
+/* Attack List Component Styles */
+.attack-list {
+  background: rgba(26, 26, 46, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+}
+
+.attack-list h2 {
+  color: #ff4444;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  text-shadow: 0 2px 10px rgba(255, 68, 68, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attack-items {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.attack-item {
+  background: linear-gradient(135deg, rgba(42, 42, 62, 0.6) 0%, rgba(31, 31, 46, 0.6) 100%);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.attack-item:hover {
+  transform: translateX(8px);
+  border-color: #ff4444;
+  box-shadow: 0 6px 20px rgba(255, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(58, 42, 62, 0.8) 0%, rgba(47, 31, 46, 0.8) 100%);
+}
+
+.attack-item.selected {
+  border-color: #ff4444;
+  background: linear-gradient(135deg, rgba(58, 42, 62, 0.8) 0%, rgba(47, 31, 46, 0.8) 100%);
+  box-shadow: 0 6px 20px rgba(255, 68, 68, 0.5);
+  transform: translateX(4px);
+}
+
+.attack-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.attack-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.badge-ddos {
+  background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+  color: #ffffff;
+}
+
+.badge-bruteforce {
+  background: linear-gradient(135deg, #ff8800 0%, #ffaa00 100%);
+  color: #ffffff;
+}
+
+.badge-portscan {
+  background: linear-gradient(135deg, #ffcc00 0%, #ffee00 100%);
+  color: #000000;
+}
+
+.badge-suspicious {
+  background: linear-gradient(135deg, #888888 0%, #aaaaaa 100%);
+  color: #ffffff;
+}
+
+.confidence {
+  color: #cccccc;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.attack-ip {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+.attack-location,
+.attack-reports {
+  font-size: 0.9rem;
+  color: #aaaaaa;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.attack-location {
+  margin-top: 0.5rem;
+}
+
+/* Loading skeleton */
+.attack-skeleton {
+  background: linear-gradient(90deg, rgba(42, 42, 62, 0.6) 0%, rgba(58, 42, 62, 0.8) 50%, rgba(42, 42, 62, 0.6) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  height: 100px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Custom scrollbar for attack items */
+.attack-items::-webkit-scrollbar {
+  width: 6px;
+}
+
+.attack-items::-webkit-scrollbar-track {
+  background: rgba(26, 26, 46, 0.4);
+  border-radius: 3px;
+}
+
+.attack-items::-webkit-scrollbar-thumb {
+  background: rgba(255, 68, 68, 0.5);
+  border-radius: 3px;
+}
+
+.attack-items::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 68, 68, 0.7);
+}
+
+/* No attacks message */
+.no-attacks {
+  text-align: center;
+  padding: 2rem;
+  color: #aaaaaa;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .attack-list {
+    padding: 1rem;
+  }
+
+  .attack-item {
+    padding: 0.875rem;
+  }
+
+  .attack-ip {
+    font-size: 1rem;
+  }
+
+  .attack-location,
+  .attack-reports {
+    font-size: 0.8rem;
+  }
+}
