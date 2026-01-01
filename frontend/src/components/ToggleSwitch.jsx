@@ -1,54 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import './ToggleSwitch.css';
 
-export default function ToggleSwitch({ onChange }) {
-  const [selected, setSelected] = useState(() => {
-    // Load from localStorage or default to '7days'
-    try {
-      return localStorage.getItem('timePeriod') || '7days';
-    } catch (e) {
-      console.warn('localStorage not available:', e);
-      return '7days';
-    }
-  });
-  const [isInitialMount, setIsInitialMount] = useState(true);
+export default function ToggleSwitch({ value, onChange }) {
+  const isFirstMount = useRef(true);
 
+  // Load saved preference on mount only
   useEffect(() => {
-    // Persist to localStorage whenever it changes
-    try {
-      localStorage.setItem('timePeriod', selected);
-    } catch (e) {
-      console.warn('localStorage.setItem failed:', e);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      const savedPeriod = localStorage.getItem('timePeriod');
+      if (savedPeriod && savedPeriod !== value) {
+        onChange(savedPeriod);
+      }
     }
-  }, [selected]);
+  }, [value, onChange]); // onChange is now memoized in parent
 
-  useEffect(() => {
-    // Skip the initial call to avoid unnecessary render on mount
-    if (isInitialMount) {
-      setIsInitialMount(false);
-      return;
-    }
-    // Notify parent component only when selected changes after mount
-    onChange(selected);
-  }, [selected, onChange, isInitialMount]);
+  const handleToggle = (newValue) => {
+    onChange(newValue);
+    localStorage.setItem('timePeriod', newValue);
+  };
 
   return (
     <div className="toggle-switch-container">
       <label className="toggle-label">Time Period:</label>
       <div className="toggle-switch">
         <button
-          className={`toggle-option ${selected === '1hour' ? 'active' : ''}`}
-          onClick={() => setSelected('1hour')}
+          className={`toggle-option ${value === '1hour' ? 'active' : ''}`}
+          onClick={() => handleToggle('1hour')}
         >
-          ⏱️ Last 1 Hour
+          <span className="toggle-icon">⏱️</span>
+          Last 1 Hour
         </button>
         <button
-          className={`toggle-option ${selected === '7days' ? 'active' : ''}`}
-          onClick={() => setSelected('7days')}
+          className={`toggle-option ${value === '7days' ? 'active' : ''}`}
+          onClick={() => handleToggle('7days')}
         >
-          📅 Last 7 Days
+          <span className="toggle-icon">📅</span>
+          Last 7 Days
         </button>
-        <div className={`toggle-slider ${selected === '1hour' ? 'left' : 'right'}`} />
+        <div className={`toggle-slider ${value === '7days' ? 'right' : ''}`} />
       </div>
     </div>
   );

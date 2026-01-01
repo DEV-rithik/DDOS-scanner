@@ -120,54 +120,42 @@ export default function GlobeComponent({ attacks, onSelectAttack, selectedAttack
   }, [selectedAttack, globeReady]);
 
   return (
-    <div className="globe-wrapper">
-      <div className="globe-legend">
-        <h3>🎯 Attack Types</h3>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: ATTACK_COLORS['DDoS'] }}></div>
-          <span className="legend-label">DDoS Attack</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: ATTACK_COLORS['Brute Force'] }}></div>
-          <span className="legend-label">Brute Force</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: ATTACK_COLORS['Port Scan'] }}></div>
-          <span className="legend-label">Port Scan</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ backgroundColor: ATTACK_COLORS['Suspicious'] }}></div>
-          <span className="legend-label">Suspicious Activity</span>
-        </div>
-      </div>
-      
+    <>
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
       {selectedAttack && (
-        <div className="attack-info-panel">
-          <h3>📍 Selected Attack</h3>
-          <div className="attack-info-item">
-            <span className="info-label">IP: </span>
-            <span className="info-value info-ip">{selectedAttack.ip}</span>
+        <div className="globe-info-panel">
+          <div className="info-header">
+            <span className="info-icon">🎯</span>
+            <span className="info-title">Selected Attack</span>
+            <button 
+              className="info-close"
+              onClick={() => onSelectAttack(null)}
+            >
+              ✕
+            </button>
           </div>
-          <div className="attack-info-item">
-            <span className="info-label">Type: </span>
-            <span className="info-value">{selectedAttack.attackType}</span>
-          </div>
-          <div className="attack-info-item">
-            <span className="info-label">Location: </span>
-            <span className="info-value">{selectedAttack.city}, {selectedAttack.country}</span>
-          </div>
-          <div className="attack-info-item">
-            <span className="info-label">Reports: </span>
-            <span className="info-value">{selectedAttack.reportCount}</span>
-          </div>
-          <div className="attack-info-item">
-            <span className="info-label">Confidence: </span>
-            <span className="info-value">{selectedAttack.confidence}%</span>
+          <div className="info-content">
+            <div className="info-row">
+              <span className="info-label">IP Address:</span>
+              <span className="info-value">{selectedAttack.ip}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Type:</span>
+              <span className={`info-badge badge-${(selectedAttack.attackType || 'suspicious').toLowerCase().replace(/\s+/g, '')}`}>
+                {selectedAttack.attackType || 'Unknown'}
+              </span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Location:</span>
+              <span className="info-value">{selectedAttack.city}, {selectedAttack.country}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Confidence:</span>
+              <span className="info-value confidence-value">{selectedAttack.confidence}%</span>
+            </div>
           </div>
         </div>
       )}
-      
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
-    </div>
+    </>
   );
 }

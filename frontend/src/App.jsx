@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Globe from './components/Globe';
 import Dashboard from './components/Dashboard';
 import AttackList from './components/AttackList';
@@ -6,67 +6,19 @@ import ToggleSwitch from './components/ToggleSwitch';
 import { fetchAttacks, fetchStats } from './services/api';
 import './App.css';
 
+// Time period constants in milliseconds
+const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 function App() {
   const [attacks, setAttacks] = useState([]);
   const [stats, setStats] = useState(null);
   const [selectedAttack, setSelectedAttack] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timePeriod, setTimePeriod] = useState('7days');
-  const [allAttacks, setAllAttacks] = useState([]);
-  const [allStats, setAllStats] = useState(null);
-
-  // Filter attacks based on time period
-  const filterAttacksByTimePeriod = useCallback((attacksData, period) => {
-    const now = new Date();
-    const cutoffTime = period === '1hour' 
-      ? new Date(now.getTime() - 60 * 60 * 1000) // 1 hour ago
-      : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    
-    return attacksData.filter(attack => {
-      // Skip attacks without valid timestamps
-      const attackTime = new Date(attack.lastReportedAt || attack.timestamp);
-      if (isNaN(attackTime.getTime())) {
-        return false; // Filter out attacks with invalid timestamps
-      }
-      return attackTime >= cutoffTime;
-    });
-  }, []);
-
-  // Calculate filtered stats
-  const calculateStats = useCallback((attacksData) => {
-    const attacksByProtocol = {};
-    const countryCounts = {};
-    
-    attacksData.forEach(attack => {
-      // Count by attack type
-      const type = attack.attackType || 'Unknown';
-      attacksByProtocol[type] = (attacksByProtocol[type] || 0) + 1;
-      
-      // Count by country
-      const country = attack.country || 'Unknown';
-      countryCounts[country] = (countryCounts[country] || 0) + 1;
-    });
-    
-    // Get top source countries
-    const topSourceCountries = Object.entries(countryCounts)
-      .map(([country, count]) => ({ country, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-    
-    return {
-      totalAttacks: attacksData.length,
-      attacksByProtocol,
-      topSourceCountries,
-    };
-  }, []);
-
-  // Apply filters and update state
-  const applyFilters = useCallback((attacksData, period) => {
-    const filteredAttacks = filterAttacksByTimePeriod(attacksData, period);
-    setAttacks(filteredAttacks);
-    setStats(calculateStats(filteredAttacks));
-  }, [filterAttacksByTimePeriod, calculateStats]);
+  const [timePeriod, setTimePeriod] = useState(() => {
+    return localStorage.getItem('timePeriod') || '7days';
+  });
 
   // Fetch data from backend
   const loadData = async () => {
@@ -89,6 +41,57 @@ function App() {
     }
   };
 
+  // Filter attacks based on time period
+  const filteredAttacks = useMemo(() => {
+    if (!attacks || attacks.length === 0) return [];
+    
+    const now = new Date();
+    const cutoffTime = timePeriod === '1hour' 
+      ? new Date(now.getTime() - MILLISECONDS_PER_HOUR)
+      : new Date(now.getTime() - 7 * MILLISECONDS_PER_DAY);
+
+    return attacks.filter(attack => {
+      // If attack has timestamp, use it; otherwise include all attacks
+      if (attack.timestamp) {
+        const attackTime = new Date(attack.timestamp);
+        return attackTime >= cutoffTime;
+      }
+      return true;
+    });
+  }, [attacks, timePeriod]);
+
+  // Calculate filtered stats
+  const filteredStats = useMemo(() => {
+    if (!stats || !filteredAttacks) return stats;
+
+    // Count attacks by protocol
+    const attacksByProtocol = {};
+    const countryCounts = {};
+
+    filteredAttacks.forEach(attack => {
+      // Count protocols
+      const protocol = attack.attackType || 'Unknown';
+      attacksByProtocol[protocol] = (attacksByProtocol[protocol] || 0) + 1;
+
+      // Count countries
+      const country = attack.country || 'Unknown';
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    });
+
+    // Create top source countries array
+    const topSourceCountries = Object.entries(countryCounts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    return {
+      totalAttacks: filteredAttacks.length,
+      attacksByProtocol,
+      topSourceCountries,
+      topTargetCountries: stats.topTargetCountries || []
+    };
+  }, [filteredAttacks, stats]);
+
   // Load data on mount and set up auto-refresh
   useEffect(() => {
     loadData();
@@ -101,13 +104,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Re-filter when time period changes
-  useEffect(() => {
-    if (allAttacks.length > 0) {
-      applyFilters(allAttacks, timePeriod);
-    }
-  }, [timePeriod, allAttacks, applyFilters]);
-
+  // Memoize the time period change handler
   const handleTimePeriodChange = useCallback((newPeriod) => {
     setTimePeriod(newPeriod);
   }, []);
@@ -145,28 +142,26 @@ function App() {
             <h1>🌐 DDoS Attack Tracker</h1>
             <p>Real-time cyber threat visualization</p>
           </div>
-          <div className="header-right">
-            <button onClick={loadData} className="refresh-button" title="Refresh Data">
-              🔄 Refresh
-            </button>
-          </div>
+          <button onClick={loadData} className="refresh-button" title="Refresh data">
+            🔄 Refresh
+          </button>
         </div>
+        <ToggleSwitch value={timePeriod} onChange={handleTimePeriodChange} />
       </header>
 
       <main className="app-main">
         <div className="globe-container">
           <Globe
-            attacks={attacks}
+            attacks={filteredAttacks}
             onSelectAttack={setSelectedAttack}
             selectedAttack={selectedAttack}
           />
         </div>
 
         <div className="sidebar">
-          <ToggleSwitch onChange={handleTimePeriodChange} />
-          <Dashboard stats={stats} timePeriod={timePeriod} />
+          <Dashboard stats={filteredStats} timePeriod={timePeriod} />
           <AttackList
-            attacks={attacks}
+            attacks={filteredAttacks}
             onSelectAttack={setSelectedAttack}
             selectedAttack={selectedAttack}
           />
