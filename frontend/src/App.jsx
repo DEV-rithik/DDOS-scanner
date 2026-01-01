@@ -24,7 +24,11 @@ function App() {
       : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
     
     return attacksData.filter(attack => {
-      const attackTime = new Date(attack.lastReportedAt || attack.timestamp || now);
+      // Skip attacks without valid timestamps
+      const attackTime = new Date(attack.lastReportedAt || attack.timestamp);
+      if (isNaN(attackTime.getTime())) {
+        return false; // Filter out attacks with invalid timestamps
+      }
       return attackTime >= cutoffTime;
     });
   }, []);

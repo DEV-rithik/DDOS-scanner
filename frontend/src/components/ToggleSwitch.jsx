@@ -4,18 +4,33 @@ import './ToggleSwitch.css';
 export default function ToggleSwitch({ onChange }) {
   const [selected, setSelected] = useState(() => {
     // Load from localStorage or default to '7days'
-    return localStorage.getItem('timePeriod') || '7days';
+    try {
+      return localStorage.getItem('timePeriod') || '7days';
+    } catch (e) {
+      console.warn('localStorage not available:', e);
+      return '7days';
+    }
   });
+  const [isInitialMount, setIsInitialMount] = useState(true);
 
   useEffect(() => {
     // Persist to localStorage whenever it changes
-    localStorage.setItem('timePeriod', selected);
+    try {
+      localStorage.setItem('timePeriod', selected);
+    } catch (e) {
+      console.warn('localStorage.setItem failed:', e);
+    }
   }, [selected]);
 
   useEffect(() => {
-    // Notify parent component only when selected changes
+    // Skip the initial call to avoid unnecessary render on mount
+    if (isInitialMount) {
+      setIsInitialMount(false);
+      return;
+    }
+    // Notify parent component only when selected changes after mount
     onChange(selected);
-  }, [selected]); // Removed onChange from dependencies to avoid infinite loops
+  }, [selected, onChange, isInitialMount]);
 
   return (
     <div className="toggle-switch-container">
