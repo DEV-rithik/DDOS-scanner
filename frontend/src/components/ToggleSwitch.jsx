@@ -2,13 +2,14 @@ import { useEffect } from 'react';
 import './ToggleSwitch.css';
 
 export default function ToggleSwitch({ value, onChange }) {
-  // Load saved preference on mount
+  // Load saved preference on mount only
   useEffect(() => {
     const savedPeriod = localStorage.getItem('timePeriod');
     if (savedPeriod && savedPeriod !== value) {
       onChange(savedPeriod);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount
 
   const handleToggle = (newValue) => {
     onChange(newValue);
